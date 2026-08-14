@@ -1,0 +1,9 @@
+# Self-registration patch for dsh-client-ui-theme-xp.
+#
+# Declaring `dsh.bundle.patch` in package.json makes `dsh plugin --profile web
+# add dsh-client-ui-theme-xp` both install the package AND append it to the
+# profile's bundle layer, so this insert activates the client plugin row
+# automatically — recipients never touch their own cordis.patch.yml.
+- insert:
+    - id: ui-theme-xp
+      name: dsh-client-ui-theme-xp

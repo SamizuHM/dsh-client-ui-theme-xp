@@ -1,0 +1,42 @@
+{
+  "name": "dsh-client-ui-theme-xp",
+  "version": "0.1.0",
+  "description": "Windows XP Luna-style UI theme for the DeepSeek Harness web GUI: token palette, Tahoma, XP title bars, beveled buttons, XP list rows, balloon bubbles and a Bliss taskbar.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "theme",
+    "windows-xp",
+    "luna",
+    "ui"
+  ],
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "immediately": true
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "license": "MIT"
+}
