@@ -24,10 +24,10 @@
     "luna",
     "ui"
   ],
-  "author": "",
+  "author": "SamizuHM",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/SamizuHM/dsh-client-ui-theme-xp.git"
   },
   "dsh": {
     "client": {
