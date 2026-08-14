@@ -21,7 +21,14 @@
 
 ## 📦 安装
 
-需要本机已安装 `dsh`（`npx @deepseek-ai/dsh` 或全局安装均可）。
+用你启动 web 的方式调用插件命令即可（无需全局安装 `dsh`）：
+
+```sh
+# 和 `npx @deepseek-ai/dsh web` 同一个入口
+npx @deepseek-ai/dsh plugin --profile web add github:SamizuHM/dsh-client-ui-theme-xp
+```
+
+如果全局安装过 `dsh`，也可以直接：
 
 ```sh
 dsh plugin --profile web add github:SamizuHM/dsh-client-ui-theme-xp
