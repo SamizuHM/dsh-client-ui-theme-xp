@@ -326,6 +326,162 @@ window.__ModuleLoader__.load({
 			"}",
 			"#dsh-xp-desktop > * { pointer-events: auto; }",
 			"",
+			"/* Desktop mode hides the app sidebar too: sessions/workspaces live on",
+			"   the desktop now (icon column + workspace browser). The sidebar DOM",
+			"   stays mounted (window iframes still self-drive through it). */",
+			"html[data-xp-desktop] [class$='_sidebarCol'] { display: none !important; }",
+			"",
+			"/* Desktop icon column */",
+			"#dsh-xp-deskicons {",
+			"  position: absolute;",
+			"  left: 6px;",
+			"  top: 6px;",
+			"  z-index: 4;",
+			"  display: flex;",
+			"  flex-direction: column;",
+			"  gap: 4px;",
+			"  padding: 4px;",
+			"  user-select: none;",
+			"}",
+			".xp-desk-icon {",
+			"  width: 76px;",
+			"  display: flex;",
+			"  flex-direction: column;",
+			"  align-items: center;",
+			"  gap: 2px;",
+			"  padding: 6px 2px 4px;",
+			"  border: 1px solid transparent;",
+			"  border-radius: 3px;",
+			"  background: transparent;",
+			"  cursor: default;",
+			"}",
+			".xp-desk-icon:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.35); }",
+			".xp-desk-icon.selected { background: rgba(49, 106, 197, 0.25); border-color: rgba(49, 106, 197, 0.45); }",
+			".xp-desk-icon .xp-ico {",
+			"  width: 32px;",
+			"  height: 32px;",
+			"  font-size: 26px;",
+			"  line-height: 32px;",
+			"  text-align: center;",
+			"  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));",
+			"}",
+			".xp-desk-icon .xp-desk-label {",
+			"  font: 11px/13px Tahoma, 'PingFang SC', 'Microsoft YaHei', sans-serif;",
+			"  color: #ffffff;",
+			"  text-align: center;",
+			"  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 2px rgba(0, 0, 0, 0.6);",
+			"  max-width: 74px;",
+			"  overflow: hidden;",
+			"  word-break: break-all;",
+			"}",
+			"",
+			"/* Tool windows (workspace browser, dialogs) and XP form chrome */",
+			".xp-win-body {",
+			"  flex: 1;",
+			"  min-height: 0;",
+			"  background: #ece9d8;",
+			"  overflow: auto;",
+			"  padding: 8px;",
+			"}",
+			".xp-browser-body { display: flex; flex-direction: column; padding: 0; }",
+			".xp-toolbar {",
+			"  display: flex;",
+			"  align-items: center;",
+			"  gap: 6px;",
+			"  padding: 4px 6px;",
+			"  border-bottom: 1px solid #aca899;",
+			"  background: #ece9d8;",
+			"  flex: none;",
+			"}",
+			".xp-btn {",
+			"  font: 12px Tahoma, 'PingFang SC', 'Microsoft YaHei', sans-serif;",
+			"  border: 1px solid #003c74;",
+			"  border-radius: 3px;",
+			"  padding: 3px 12px;",
+			"  background: linear-gradient(180deg, #ffffff 0%, #ecebe5 45%, #d8d0c4 100%);",
+			"  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.9);",
+			"  cursor: default;",
+			"  color: #000000;",
+			"}",
+			".xp-btn:hover { background: linear-gradient(180deg, #ffffff 0%, #eaf1fb 45%, #d8e4f8 100%); }",
+			".xp-btn:active { box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3); }",
+			".xp-btn:disabled { color: #999999; }",
+			".xp-field {",
+			"  font: 12px Tahoma, 'PingFang SC', 'Microsoft YaHei', sans-serif;",
+			"  border: 1px solid #7f9db9;",
+			"  border-radius: 3px;",
+			"  padding: 3px 6px;",
+			"  background: #ffffff;",
+			"  color: #000000;",
+			"  flex: 1;",
+			"  min-width: 0;",
+			"}",
+			".xp-field:focus { outline: none; border-color: #316ac5; }",
+			".xp-breadcrumb {",
+			"  display: flex;",
+			"  align-items: center;",
+			"  gap: 4px;",
+			"  padding: 4px 8px;",
+			"  border-bottom: 1px solid #aca899;",
+			"  background: #f5f3ea;",
+			"  font: 12px Tahoma, 'PingFang SC', 'Microsoft YaHei', sans-serif;",
+			"  flex: none;",
+			"}",
+			".xp-breadcrumb .xp-crumb { cursor: pointer; color: #003c74; text-decoration: underline; }",
+			".xp-breadcrumb .xp-crumb-sep { color: #555555; }",
+			".xp-grid {",
+			"  display: grid;",
+			"  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));",
+			"  gap: 4px;",
+			"  padding: 8px;",
+			"  align-content: start;",
+			"  overflow: auto;",
+			"  flex: 1;",
+			"}",
+			".xp-grid-item {",
+			"  display: flex;",
+			"  flex-direction: column;",
+			"  align-items: center;",
+			"  gap: 4px;",
+			"  padding: 8px 2px 6px;",
+			"  border: 1px solid transparent;",
+			"  border-radius: 3px;",
+			"  cursor: default;",
+			"  text-align: center;",
+			"}",
+			".xp-grid-item:hover { background: rgba(49, 106, 197, 0.14); border-color: rgba(49, 106, 197, 0.28); }",
+			".xp-grid-item .xp-ico { width: 40px; height: 40px; font-size: 32px; line-height: 40px; }",
+			".xp-grid-item .xp-item-label {",
+			"  font: 11px/13px Tahoma, 'PingFang SC', 'Microsoft YaHei', sans-serif;",
+			"  color: #222222;",
+			"  max-width: 92px;",
+			"  overflow: hidden;",
+			"  text-overflow: ellipsis;",
+			"  white-space: nowrap;",
+			"}",
+			"/* \"new session in this workspace\" item: green plus badge */",
+			".xp-grid-item.xp-new-item .xp-ico { position: relative; }",
+			".xp-grid-item.xp-new-item .xp-ico::after {",
+			"  content: '+';",
+			"  position: absolute;",
+			"  right: -6px;",
+			"  bottom: -6px;",
+			"  width: 16px;",
+			"  height: 16px;",
+			"  border-radius: 50%;",
+			"  background: linear-gradient(180deg, #6fbe44 0%, #3d9400 100%);",
+			"  color: #ffffff;",
+			"  font: 700 12px/16px Tahoma, sans-serif;",
+			"  text-align: center;",
+			"  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);",
+			"}",
+			".xp-dlg { display: flex; flex-direction: column; gap: 10px; padding: 12px; font: 12px Tahoma, 'PingFang SC', 'Microsoft YaHei', sans-serif; }",
+			".xp-dlg .xp-row { display: flex; align-items: center; gap: 8px; }",
+			".xp-dlg .xp-row label { flex: none; color: #222222; }",
+			".xp-status { font: 11px Tahoma, 'PingFang SC', sans-serif; color: #c00000; min-height: 14px; }",
+			".xp-empty { padding: 24px 12px; text-align: center; color: #666666; font: 12px Tahoma, 'PingFang SC', sans-serif; }",
+			".xp-hint { font: 11px Tahoma, 'PingFang SC', sans-serif; color: #555555; }",
+			"",
 			"/* ==== XP windows ==== */",
 			"#dsh-xp-winlist {",
 			"  flex: 1;",
@@ -786,6 +942,7 @@ window.__ModuleLoader__.load({
 			var idx = S.windows.indexOf(win);
 			if (idx !== -1) S.windows.splice(idx, 1);
 			if (win.sessionId) S.bySession.delete(win.sessionId);
+			try { if (win.toolCleanup) win.toolCleanup(); } catch (e) { }
 			try { win.btn.remove(); } catch (e) { }
 			try { win.el.remove(); } catch (e) { }
 			if (S.active === win) {
@@ -884,28 +1041,11 @@ window.__ModuleLoader__.load({
 			e.stopPropagation();
 		}
 
-		function openWindow(sessionId, title) {
-			if (sessionId && S.bySession.has(sessionId)) {
-				focusWindow(S.bySession.get(sessionId));
-				return;
-			}
+		/* Shared window chrome: titlebar + min/max/close + resize handles,
+		   wired and appended. The caller attaches the body (iframe or custom
+		   content) into the space between titlebar and resize handles. */
+		function createWinChrome(win, title) {
 			var layer = getDesktopLayer();
-			var geo = desktopGeometry();
-			var deskW = Math.max(320, geo.width);
-			var deskH = Math.max(240, geo.height);
-			var cascade = (S.windows.length % 6) * 28;
-
-			var win = {
-				id: ++S.seq,
-				sessionId: sessionId || null,
-				state: "normal",
-				x: 0, y: 0, w: 0, h: 0
-			};
-			win.w = Math.min(960, Math.max(360, deskW - 80));
-			win.h = Math.min(660, Math.max(260, deskH - 90));
-			win.x = Math.max(geo.sideW + 8, Math.min(geo.sideW + 20 + cascade, Math.max(geo.sideW + 8, window.innerWidth - win.w - 8)));
-			win.y = Math.max(6, Math.min(14 + cascade, Math.max(6, geo.height - 40 - win.h)));
-
 			var el = document.createElement("div");
 			el.className = "xp-window";
 			el.style.left = win.x + "px";
@@ -920,7 +1060,6 @@ window.__ModuleLoader__.load({
 				'<button type="button" class="xp-max" title="最大化">\u25A1</button>' +
 				'<button type="button" class="xp-close" title="关闭">\u2715</button>' +
 				'</span></div>' +
-				'<iframe class="xp-win-frame" title="' + (title || "会话") + '"></iframe>' +
 				'<span class="xp-rs xp-rs-n" data-dir="n"></span>' +
 				'<span class="xp-rs xp-rs-s" data-dir="s"></span>' +
 				'<span class="xp-rs xp-rs-e" data-dir="e"></span>' +
@@ -931,22 +1070,20 @@ window.__ModuleLoader__.load({
 				'<span class="xp-rs xp-rs-sw" data-dir="sw"></span>';
 			layer.appendChild(el);
 
-			var iframe = el.querySelector(".xp-win-frame");
 			var btn = document.createElement("button");
 			btn.type = "button";
 			btn.className = "xp-task-win";
 			btn.dataset.win = String(win.id);
-			btn.textContent = title || "会话";
-			btn.title = title || "会话";
+			btn.textContent = title || "窗口";
+			btn.title = title || "窗口";
 			btn.addEventListener("click", function () { taskbarClick(win); });
 			var list = document.getElementById("dsh-xp-winlist");
 			if (list) list.appendChild(btn);
 
 			win.el = el;
-			win.iframe = iframe;
 			win.btn = btn;
 			win.titleEl = el.querySelector(".xp-win-title");
-			setWinTitle(win, "打开中\u2026");
+			setWinTitle(win, title || "窗口");
 
 			el.querySelector(".xp-min").addEventListener("click", function (e) { e.stopPropagation(); minimizeWindow(win); });
 			el.querySelector(".xp-max").addEventListener("click", function (e) { e.stopPropagation(); maximizeWindow(win); });
@@ -968,18 +1105,436 @@ window.__ModuleLoader__.load({
 			}
 
 			S.windows.push(win);
-			if (sessionId) S.bySession.set(sessionId, win);
 			focusWindow(win);
+			el.id = "dsh-xp-win-" + win.id;
+			return el;
+		}
+
+		function windowGeometry(win) {
+			var geo = desktopGeometry();
+			var deskW = Math.max(320, geo.width);
+			var deskH = Math.max(240, geo.height);
+			var cascade = (S.windows.length % 6) * 28;
+			win.w = Math.min(960, Math.max(360, deskW - 80));
+			win.h = Math.min(660, Math.max(260, deskH - 90));
+			win.x = Math.max(geo.sideW + 8, Math.min(geo.sideW + 20 + cascade, Math.max(geo.sideW + 8, window.innerWidth - win.w - 8)));
+			win.y = Math.max(6, Math.min(14 + cascade, Math.max(6, geo.height - 40 - win.h)));
+		}
+
+		function openWindow(sessionId, title) {
+			if (sessionId && S.bySession.has(sessionId)) {
+				focusWindow(S.bySession.get(sessionId));
+				return;
+			}
+			var win = {
+				id: ++S.seq,
+				sessionId: sessionId || null,
+				state: "normal",
+				x: 0, y: 0, w: 0, h: 0
+			};
+			windowGeometry(win);
+			var el = createWinChrome(win, title || "打开中\u2026");
+
+			var iframe = document.createElement("iframe");
+			iframe.className = "xp-win-frame";
+			iframe.title = title || "会话";
+			el.insertBefore(iframe, el.querySelector(".xp-rs"));
+			win.iframe = iframe;
+			setWinTitle(win, "打开中\u2026");
+
+			if (sessionId) S.bySession.set(sessionId, win);
 			/* The iframe's own plugin instance reads this dataset and drives the
 			   app inside (clicking the target session row / its new-session
 			   button), with data-xp-win applied from first paint — so the app's
 			   sidebar is never rendered inside a window. */
-			el.id = "dsh-xp-win-" + win.id;
 			iframe.dataset.session = sessionId || "new";
 			iframe.dataset.wintitle = title || "";
 			iframe.src = "/";
 			schedulePersist();
 			return win;
+		}
+
+		// ─────────────────────────────────────────────────────────────────
+		// Desktop icons + tool windows: sessions/workspaces management on the
+		// XP desktop. All data comes from the client runtime services
+		// (ctx.sessions / ctx.workspaces) — no sidebar scraping.
+		// ─────────────────────────────────────────────────────────────────
+		function escHtml(s) {
+			return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+				return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+			});
+		}
+
+		function escAttr(s) {
+			return escHtml(s);
+		}
+
+		function xpSvc(name) {
+			try {
+				var ctx = S.ctx;
+				return ctx && typeof ctx.get === "function" ? ctx.get(name) : null;
+			} catch (e) {
+				return null;
+			}
+		}
+
+		function wsTitle(w) {
+			if (!w) return "";
+			if (w.title) return w.title;
+			if (w.path) {
+				var parts = String(w.path).split(/[\\/]+/).filter(Boolean);
+				return parts.length ? parts[parts.length - 1] : w.path;
+			}
+			return w.workspaceId || "";
+		}
+
+		function sessionTitle(byId, id) {
+			var s = byId && byId[id];
+			return (s && (s.displayTitle || s.title)) || id;
+		}
+
+		function gridItem(ico, label, id, kind) {
+			return '<div class="xp-grid-item" data-kind="' + escAttr(kind) + '" data-id="' + escAttr(id) + '" data-title="' + escAttr(label) + '" title="' + escAttr(label) + '">' +
+				'<span class="xp-ico">' + ico + '</span>' +
+				'<span class="xp-item-label">' + escHtml(label) + '</span></div>';
+		}
+
+		function openToolWindow(kind, title) {
+			var win = {
+				id: ++S.seq,
+				sessionId: null,
+				state: "normal",
+				x: 0, y: 0, w: 0, h: 0,
+				tool: kind
+			};
+			windowGeometry(win);
+			if (kind === "browse") {
+				win.w = Math.min(780, Math.max(420, win.w));
+				win.h = Math.min(580, Math.max(320, win.h));
+			} else if (kind === "workspace") {
+				win.w = Math.min(520, Math.max(380, win.w));
+				win.h = Math.min(360, Math.max(260, win.h));
+			}
+			var el = createWinChrome(win, title || "窗口");
+			if (kind === "settings") {
+				var iframe = document.createElement("iframe");
+				iframe.className = "xp-win-frame";
+				el.insertBefore(iframe, el.querySelector(".xp-rs"));
+				win.iframe = iframe;
+				iframe.dataset.mode = "settings";
+				iframe.dataset.wintitle = title || "设置";
+				iframe.src = "/";
+			} else {
+				var body = document.createElement("div");
+				body.className = "xp-win-body";
+				el.insertBefore(body, el.querySelector(".xp-rs"));
+				win.bodyEl = body;
+				renderToolBody(win, kind);
+			}
+			schedulePersist();
+			return win;
+		}
+
+		function renderToolBody(win, kind) {
+			if (kind === "browse") renderBrowse(win);
+			else if (kind === "search") renderSearch(win);
+			else if (kind === "workspace") renderAddWorkspace(win);
+			else win.bodyEl.innerHTML = '<div class="xp-empty">未知工具</div>';
+		}
+
+		function subscribeStores(win, render) {
+			var unsubs = [];
+			var wsSvc = xpSvc("workspaces");
+			var sessSvc = xpSvc("sessions");
+			if (wsSvc && wsSvc.list && typeof wsSvc.list.subscribe === "function") {
+				try { unsubs.push(wsSvc.list.subscribe(render)); } catch (e) { }
+			}
+			if (sessSvc && sessSvc.list && typeof sessSvc.list.subscribe === "function") {
+				try { unsubs.push(sessSvc.list.subscribe(render)); } catch (e) { }
+			}
+			win.toolCleanup = function () {
+				for (var i = 0; i < unsubs.length; i++) {
+					try { unsubs[i](); } catch (e) { }
+				}
+			};
+		}
+
+		function workspaceItems() {
+			var wsSvc = xpSvc("workspaces");
+			var snap = wsSvc && wsSvc.list ? wsSvc.list.getSnapshot() : null;
+			return snap && Array.isArray(snap.items) ? snap.items : [];
+		}
+
+		function sessionById() {
+			var sessSvc = xpSvc("sessions");
+			var snap = sessSvc && sessSvc.list ? sessSvc.list.getSnapshot() : null;
+			return snap && snap.byId ? snap.byId : {};
+		}
+
+		/* "我的工作区": Explorer-style browser — workspace folders on the root,
+		   sessions inside each folder. */
+		function renderBrowse(win) {
+			var body = win.bodyEl;
+			body.className = "xp-win-body xp-browser-body";
+			var state = { ws: null };
+			function render() {
+				var items = workspaceItems();
+				var byId = sessionById();
+				var current = null;
+				if (state.ws) {
+					for (var i = 0; i < items.length; i++) {
+						if (items[i].workspaceId === state.ws) { current = items[i]; break; }
+					}
+					if (!current) state.ws = null; /* workspace vanished: back to root */
+				}
+				var crumbs = '<div class="xp-breadcrumb"><span class="xp-crumb" data-root="1">我的工作区</span>';
+				if (current) {
+					crumbs += '<span class="xp-crumb-sep">\u203A</span><span>' + escHtml(wsTitle(current)) + '</span>';
+				}
+				crumbs += '</div>';
+				var grid = '<div class="xp-grid">';
+				if (!state.ws) {
+					if (items.length === 0) grid += '<div class="xp-empty">没有工作区 — 双击桌面「添加工作区」创建</div>';
+					for (var j = 0; j < items.length; j++) {
+						grid += gridItem("\uD83D\uDCC1", wsTitle(items[j]), items[j].workspaceId, "ws");
+					}
+				} else if (current) {
+					/* Inside a workspace folder: a "new session" action first,
+					   then the workspace's sessions. */
+					grid += '<div class="xp-grid-item xp-new-item" data-kind="new" data-id="" data-title="新建会话" title="在这个工作区内新建会话">' +
+						'<span class="xp-ico">\uD83D\uDCC4</span>' +
+						'<span class="xp-item-label">新建会话</span></div>';
+					var ids = Array.isArray(current.sessionIds) ? current.sessionIds : [];
+					var curId = null;
+					try {
+						var sSvc = xpSvc("sessions");
+						var sSnap = sSvc && sSvc.list ? sSvc.list.getSnapshot() : null;
+						curId = sSnap ? sSnap.current : null;
+					} catch (e) { }
+					var shown = 0;
+					for (var k = 0; k < ids.length; k++) {
+						var s = byId[ids[k]];
+						/* Match the official sidebar: blank sessions are hidden
+						   except the currently selected one. */
+						if (!s || (s.blank && s.id !== curId)) continue;
+						grid += gridItem("\uD83D\uDCAC", sessionTitle(byId, ids[k]), ids[k], "sess");
+						shown++;
+					}
+					if (shown === 0) grid += '<div class="xp-empty">这个工作区还没有会话 — 点上方「新建会话」创建</div>';
+				}
+				grid += '</div>';
+				body.innerHTML = crumbs + grid;
+			}
+			body.addEventListener("click", function (e) {
+				var sel = body.querySelectorAll(".xp-grid-item.selected");
+				for (var i = 0; i < sel.length; i++) sel[i].classList.remove("selected");
+				var item = e.target.closest(".xp-grid-item");
+				if (item) item.classList.add("selected");
+			});
+			body.addEventListener("dblclick", function (e) {
+				if (e.target.closest("[data-root]")) {
+					state.ws = null;
+					render();
+					return;
+				}
+				var item = e.target.closest(".xp-grid-item");
+				if (!item) return;
+				if (item.dataset.kind === "ws") {
+					state.ws = item.dataset.id;
+					render();
+				} else if (item.dataset.kind === "sess") {
+					openWindow(item.dataset.id, item.dataset.title || "会话");
+				} else if (item.dataset.kind === "new") {
+					createNewSession();
+				}
+			});
+			function createNewSession() {
+				var wsId = state.ws;
+				var sessSvc = xpSvc("sessions");
+				if (!wsId || !sessSvc || typeof sessSvc.create !== "function") return;
+				sessSvc.create({ workspaceId: wsId }).then(function (sid) {
+					if (sid) openWindow(sid, "新会话");
+				}).catch(function (err) { /* create failure: host surfaces the error */ });
+			}
+			subscribeStores(win, render);
+			render();
+		}
+
+		/* 搜索: sessions.search over message content. */
+		function renderSearch(win) {
+			var body = win.bodyEl;
+			body.innerHTML =
+				'<div class="xp-toolbar">' +
+				'<input class="xp-field" data-q="1" placeholder="搜索会话内容\u2026" autocomplete="off"/>' +
+				'<button type="button" class="xp-btn" data-go="1">搜索</button>' +
+				'</div>' +
+				'<div class="xp-grid" data-results="1"></div>';
+			var input = body.querySelector("[data-q]");
+			var results = body.querySelector("[data-results]");
+			function run() {
+				var q = (input.value || "").trim();
+				if (!q) return;
+				results.innerHTML = '<div class="xp-empty">搜索中\u2026</div>';
+				var sessSvc = xpSvc("sessions");
+				if (!sessSvc || typeof sessSvc.search !== "function") {
+					results.innerHTML = '<div class="xp-empty">搜索服务不可用</div>';
+					return;
+				}
+				sessSvc.search(q).then(function (res) {
+					var items = res && Array.isArray(res.items) ? res.items : (Array.isArray(res) ? res : []);
+					var byId = sessionById();
+					if (items.length === 0) {
+						results.innerHTML = '<div class="xp-empty">没有找到匹配的会话</div>';
+						return;
+					}
+					var html = "";
+					for (var i = 0; i < items.length; i++) {
+						var it = items[i];
+						if (!it || !it.sessionId) continue;
+						var title = sessionTitle(byId, it.sessionId);
+						var snippet = it.snippet || "";
+						html += '<div class="xp-grid-item" data-kind="hit" data-id="' + escAttr(it.sessionId) + '" data-title="' + escAttr(title) + '" style="grid-column:1/-1;flex-direction:row;text-align:left;width:100%;box-sizing:border-box">' +
+							'<span class="xp-ico" style="width:28px;height:28px;font-size:22px;line-height:28px;flex:none">\uD83D\uDCAC</span>' +
+							'<span style="min-width:0;overflow:hidden">' +
+							'<span class="xp-item-label" style="display:block;max-width:none">' + escHtml(title) + '</span>' +
+							'<span class="xp-hint" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(snippet) + '</span>' +
+							'</span></div>';
+					}
+					results.innerHTML = html;
+				}).catch(function (err) {
+					results.innerHTML = '<div class="xp-empty">搜索失败: ' + escHtml(err && err.message ? err.message : String(err)) + '</div>';
+				});
+			}
+			body.addEventListener("click", function (e) {
+				var go = e.target.closest("[data-go]");
+				if (go) { run(); return; }
+				var hit = e.target.closest("[data-kind='hit']");
+				if (hit) openWindow(hit.dataset.id, hit.dataset.title || "会话");
+			});
+			body.addEventListener("keydown", function (e) {
+				if (e.key === "Enter") run();
+			});
+			setTimeout(function () { try { input.focus(); } catch (e) { } }, 50);
+		}
+
+		/* 添加工作区: native directory picker (Finder / Explorer) — no manual
+		   path typing. */
+		function renderAddWorkspace(win) {
+			var body = win.bodyEl;
+			body.innerHTML =
+				'<div class="xp-dlg">' +
+				'<div class="xp-hint">选择一个本地目录作为工作区（系统目录选择器）。</div>' +
+				'<div class="xp-row">' +
+				'<button type="button" class="xp-btn" data-pick="1">选择目录\u2026</button>' +
+				'<span class="xp-status" data-status="1"></span>' +
+				'</div>' +
+				'<div class="xp-hint" data-path="1"></div></div>';
+			var status = body.querySelector("[data-status]");
+			var pathEl = body.querySelector("[data-path]");
+			function pick() {
+				status.textContent = "打开目录选择器\u2026";
+				var wsSvc = xpSvc("workspaces");
+				if (!wsSvc || typeof wsSvc.pickDirectory !== "function") {
+					status.textContent = "目录选择器不可用";
+					return;
+				}
+				wsSvc.pickDirectory().then(function (path) {
+					if (!path) { status.textContent = "已取消"; return; }
+					pathEl.textContent = path;
+					status.textContent = "添加中\u2026";
+					return wsSvc.manager.create({ path: path }).then(function (result) {
+						if (result && result.ok) closeWindow(win);
+						else status.textContent = (result && result.error && result.error.message) || "添加失败";
+					});
+				}).catch(function (err) {
+					status.textContent = "添加失败: " + (err && err.message ? err.message : String(err));
+				});
+			}
+			var btn = body.querySelector("[data-pick]");
+			if (btn) btn.addEventListener("click", pick);
+		}
+
+		var DESKTOP_ICON_DEFS = [
+			["browse", "我的工作区", "\uD83D\uDCC1"],
+			["search", "搜索", "\uD83D\uDD0D"],
+			["workspace", "添加工作区", "\u2795"],
+			["settings", "设置", "\u2699\uFE0F"]
+		];
+
+		function ensureDesktopIcons() {
+			var layer = getDesktopLayer();
+			var bar = document.getElementById("dsh-xp-deskicons");
+			if (!bar) {
+				bar = document.createElement("div");
+				bar.id = "dsh-xp-deskicons";
+				layer.appendChild(bar);
+			}
+			if (S.iconsBuilt) return;
+			S.iconsBuilt = true;
+			for (var i = 0; i < DESKTOP_ICON_DEFS.length; i++) {
+				(function (def) {
+					var el = document.createElement("button");
+					el.type = "button";
+					el.className = "xp-desk-icon";
+					el.dataset.icon = def[0];
+					el.title = def[1];
+					el.innerHTML = '<span class="xp-ico">' + def[2] + '</span><span class="xp-desk-label"></span>';
+					el.querySelector(".xp-desk-label").textContent = def[1];
+					el.addEventListener("click", function (e) {
+						var sel = bar.querySelectorAll(".xp-desk-icon.selected");
+						for (var j = 0; j < sel.length; j++) sel[j].classList.remove("selected");
+						el.classList.add("selected");
+						e.stopPropagation();
+					});
+					el.addEventListener("dblclick", function () {
+						if (def[0] === "settings") openDesktopSettings();
+						else openToolWindow(def[0], def[1]);
+					});
+					bar.appendChild(el);
+				})(DESKTOP_ICON_DEFS[i]);
+			}
+		}
+
+		/* 设置: open the app's OWN settings panel directly on the parent
+		   page — the sidebar is display:none but its trigger DOM and React
+		   handler stay live, so clicking it pops the native settings modal
+		   over the desktop. No separate window, no iframe boot. */
+		function openDesktopSettings() {
+			var attempts = 0;
+			function findTrigger() {
+				var areas = document.querySelectorAll("[class$='_settingsArea'], [class*='_settingsArea']");
+				for (var i = 0; i < areas.length; i++) {
+					var btn = areas[i].querySelector("button");
+					if (btn) return btn;
+				}
+				return document.querySelector("[class$='_trigger']");
+			}
+			function click() {
+				var btn = findTrigger();
+				if (!btn) {
+					if (++attempts <= 10) setTimeout(click, 1500);
+					return;
+				}
+				fireClick(btn);
+				try { btn.click(); } catch (e) { }
+				/* The settings panel mounts an overlay; re-click until it shows. */
+				waitFor(function () {
+					return document.querySelector("[class$='_overlay']");
+				}, 2500).then(function (open) {
+					if (open) return;
+					if (++attempts <= 10) setTimeout(click, 1500);
+				});
+			}
+			/* Let the app baseline settle so the sidebar.settings slot mounts. */
+			var settle = function () {
+				var ctx = S.ctx;
+				var s = ctx && typeof ctx.get === "function" ? ctx.get("sessions") : null;
+				var snap = null;
+				try { snap = s && s.list ? s.list.getSnapshot() : null; } catch (e) { }
+				if (!snap || snap.phase !== "ready") { setTimeout(settle, 400); return; }
+				setTimeout(click, 800);
+			};
+			settle();
 		}
 
 		// ─────────────────────────────────────────────────────────────────
@@ -1005,13 +1560,19 @@ window.__ModuleLoader__.load({
 		function selfDriveWindow() {
 			var sess = null;
 			var winTitle = null;
+			var mode = null;
 			try {
 				var fe = window.frameElement;
 				if (fe && fe.dataset) {
 					sess = fe.dataset.session || null;
 					winTitle = fe.dataset.wintitle || null;
+					mode = fe.dataset.mode || null;
 				}
 			} catch (e) { /* ignore */ }
+			if (mode === "settings") {
+				selfDriveSettings(winTitle || "设置");
+				return;
+			}
 
 			/* Focus the parent window whenever the user interacts inside. */
 			var seq = null;
@@ -1111,6 +1672,63 @@ window.__ModuleLoader__.load({
 						}
 					}
 				}, 400);
+			});
+		}
+
+		/* Settings window: drive the app's own settings UI (the same page the
+		   sidebar's 设置 button opens — a modal settings panel) by clicking the
+		   sidebar.settings trigger inside the window iframe. The sidebar is
+		   display:none but its DOM and React handlers stay live. */
+		function selfDriveSettings(fallback) {
+			var seq = null;
+			try {
+				var w = window.frameElement ? window.frameElement.closest(".xp-window") : null;
+				seq = w ? w.id.replace("dsh-xp-win-", "") : null;
+			} catch (e) { /* ignore */ }
+			if (seq) {
+				document.addEventListener("pointerdown", function () {
+					try {
+						if (parent.__dshXpFocusWindow) parent.__dshXpFocusWindow(seq);
+					} catch (e) { /* ignore */ }
+				}, true);
+			}
+			var expanded = false;
+			function findTrigger() {
+				var areas = document.querySelectorAll("[class$='_settingsArea'], [class*='_settingsArea']");
+				for (var i = 0; i < areas.length; i++) {
+					var btn = areas[i].querySelector("button");
+					if (btn) return btn;
+				}
+				return document.querySelector("[class$='_trigger']");
+			}
+			waitFor(function () {
+				if (!document.body) return null;
+				if (!document.querySelector("[class$='_frame']")) return null;
+				if (findTrigger()) return true;
+				/* Collapsed/rail sidebar may defer the slot: expand it once. */
+				if (!expanded) {
+					expanded = true;
+					var side = document.querySelector("[class$='_sidebarCol']");
+					var tg = side ? side.querySelector("[class*='_toggle']") : null;
+					if (tg) fireClick(tg);
+				}
+				return null;
+			}, 25000).then(function () {
+				setParentTitle(fallback || "设置");
+				var tries = 0;
+				(function attempt() {
+					var btn = findTrigger();
+					if (!btn) return;
+					fireClick(btn);
+					try { btn.click(); } catch (e) { }
+					/* The settings panel mounts an overlay; re-click until it shows. */
+					waitFor(function () {
+						return document.querySelector("[class$='_overlay']");
+					}, 2500).then(function (open) {
+						if (open) return;
+						if (++tries <= 4) setTimeout(attempt, 1500);
+					});
+				})();
 			});
 		}
 
@@ -1245,7 +1863,8 @@ window.__ModuleLoader__.load({
 		// ─────────────────────────────────────────────────────────────────
 		// Desktop wiring (top window only)
 		// ─────────────────────────────────────────────────────────────────
-		function initDesktop() {
+		function initDesktop(ctx) {
+			S.ctx = ctx;
 			/* HMR re-applies the bundle: always re-register the click handler so
 			   code changes take effect without a page reload. */
 			if (S.clickHandler) {
@@ -1278,6 +1897,9 @@ window.__ModuleLoader__.load({
 				}
 			};
 			document.addEventListener("click", S.clickHandler, true);
+
+			/* Desktop icons for sessions/workspaces management. */
+			ensureDesktopIcons();
 
 			if (S.init) return;
 			S.init = true;
@@ -1347,7 +1969,7 @@ window.__ModuleLoader__.load({
 			var top = isTopWindow();
 			if (top) {
 				document.documentElement.setAttribute("data-xp-desktop", "1");
-				initDesktop();
+				initDesktop(ctx);
 			} else {
 				/* Window iframe: apply the conversation-only chrome from the very
 				   first paint (the sidebar is display:none before it mounts, so
