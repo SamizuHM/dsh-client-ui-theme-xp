@@ -1557,7 +1557,14 @@ window.__ModuleLoader__.load({
 			el.dispatchEvent(new MouseEvent("click", base));
 		}
 
-		function selfDriveWindow() {
+		/* Drive a session window: use the app's OWN sessions service
+		   (ctx.sessions.open) instead of synthesizing clicks on the sidebar —
+		   the DOM-click approach races the app's boot-time restore (the iframe
+		   apps all share localStorage, so every window boots into the last
+		   selected session) and loses. Programmatic open() is what the sidebar
+		   row click calls internally: deterministic, no DOM structure
+		   dependency, no collapse/expand dance. */
+		function selfDriveWindow(ctx) {
 			var sess = null;
 			var winTitle = null;
 			var mode = null;
@@ -1570,7 +1577,7 @@ window.__ModuleLoader__.load({
 				}
 			} catch (e) { /* ignore */ }
 			if (mode === "settings") {
-				selfDriveSettings(winTitle || "设置");
+				selfDriveSettings(winTitle || "设置", ctx);
 				return;
 			}
 
@@ -1588,60 +1595,59 @@ window.__ModuleLoader__.load({
 				}, true);
 			}
 
-			var toggled = false;
-			waitFor(function () {
-				if (!document.body) return null;
-				var appReady = !!document.querySelector("[class$='_frame']");
-				if (!appReady) return null;
-				if (sess && sess !== "new") {
-					var row = findRowBySession(document, sess);
-					if (row) return { row: row };
-				} else if (sess === "new") {
-					var nb = document.querySelector("[class*='_newSession']");
-					if (nb) return { btn: nb };
-				} else {
-					return { none: true };
-				}
-				/* The fresh app boots with a collapsed icon rail — session rows
-				   do not exist until the sidebar is expanded. The sidebar is
-				   display:none in window mode, but programmatic events still
-				   work on hidden elements. */
-				if (!toggled) {
-					var side = document.querySelector("[class$='_sidebarCol']");
-					var tg = side
-						? side.querySelector("[class*='_toggle']")
-						: document.querySelector("[class*='_toggle']");
-					if (tg) {
-						fireClick(tg);
-						toggled = true;
-					}
-				}
-				return null;
-			}, 25000).then(function (done) {
-				var fallback = winTitle || (sess === "new" ? "新会话" : "会话");
-				if (!done) { setParentTitle(fallback); return; }
-				/* Let React settle after boot before dispatching the sequence. */
-				setTimeout(function () {
-					if (done.row) fireClick(done.row);
-					else if (done.btn) fireClick(done.btn);
-					/* For a brand-new session the button may need a retry. */
-					if (done.btn) {
+			var fallback = winTitle || (sess === "new" ? "新会话" : "会话");
+
+			/* A real target id → drive through the app's OWN sessions service,
+			   resolved LAZILY (the theme applies before the runtime boots, so an
+			   eager ctx.get at apply time is undefined). Fall back to the DOM
+			   drive only for the new-session button / missing service. */
+			if (sess && sess !== "new") {
+				programmaticOpen();
+				return;
+			}
+			legacyDomDrive();
+
+			function getSessions() {
+				try {
+					var c = S.ctx;
+					return c && typeof c.get === "function" ? c.get("sessions") : null;
+				} catch (e) { return null; }
+			}
+
+			function programmaticOpen() {
+				waitFor(function () {
+					if (!document.body) return null;
+					if (!document.querySelector("[class$='_frame']")) return null;
+					var s = getSessions();
+					if (!s || !s.list || typeof s.open !== "function" ||
+						typeof s.list.getSnapshot !== "function") return null;
+					var snap = null;
+					try { snap = s.list.getSnapshot(); } catch (e) { }
+					if (!snap || snap.phase !== "ready") return null;
+					return s;
+				}, 30000).then(function (sessions) {
+					if (!sessions) { setParentTitle(fallback); return; }
+					/* Let the boot-time restore land first so it cannot win. */
+					setTimeout(function () {
 						var tries = 0;
-						(function retry() {
-							var h = document.querySelector("[class$='_header']:has([class$='_titleRow'])");
-							if (h) return;
-							if (++tries <= 3 && !document.querySelector("[class$='_crumbCurrent']")) {
-								setTimeout(function () {
-									fireClick(done.btn);
-									retry();
-								}, 5000);
-							}
+						(function attempt() {
+							try { sessions.open(sess); } catch (e) { }
+							var cur = null;
+							try { cur = sessions.list.getSnapshot().current; } catch (e) { }
+							if (cur === sess) { afterOpened(); return; }
+							if (++tries <= 5) setTimeout(attempt, 1500);
+							else afterOpened();
 						})();
-					}
-					/* Push the real title to the parent window once the
-					   conversation mounts (the crumb can lag), and report the
-					   actual session id (from the app's selected tree row) so
-					   the parent can persist the window. */
+					}, 1200);
+				});
+			}
+
+			function afterOpened() {
+				/* The crumb can lag behind the selection; poll until the
+				   conversation mounts, then report title + session to parent.
+				   Blank sessions never mount a crumb, so fall back to the
+				   announced title after a few seconds. */
+				setTimeout(function () {
 					var pt = 0;
 					(function pollTitle() {
 						var crumb = document.querySelector("[class$='_crumbCurrent']");
@@ -1652,34 +1658,93 @@ window.__ModuleLoader__.load({
 							return;
 						}
 						if (++pt < 60) setTimeout(pollTitle, 500);
-						else {
+						if (pt === 12) {
+							setParentTitle(fallback);
+							reportSession();
+						}
+						if (pt >= 60) {
 							setParentTitle(fallback);
 							reportSession();
 						}
 					})();
-					function reportSession() {
-						if (!seq) return;
-						var sel = document.querySelector("[class*='_sessionRow'][class*='_selected']");
-						var sid = sel ? fiberSessionId(sel) : null;
-						if (!sid) {
-							/* Fall back to the announced target. */
-							sid = sess && sess !== "new" ? sess : null;
-						}
-						if (sid) {
-							try {
-								if (parent.__dshXpSetWinSession) parent.__dshXpSetWinSession(seq, sid);
-							} catch (e) { /* ignore */ }
+				}, 500);
+			}
+
+			function reportSession() {
+				if (!seq || !sess) return;
+				try {
+					if (parent.__dshXpSetWinSession) parent.__dshXpSetWinSession(seq, sess);
+				} catch (e) { /* ignore */ }
+			}
+
+			function legacyDomDrive() {
+				var toggled = false;
+				waitFor(function () {
+					if (!document.body) return null;
+					if (!document.querySelector("[class$='_frame']")) return null;
+					if (sess && sess !== "new") {
+						var row = findRowBySession(document, sess);
+						if (row) return { row: row };
+					} else if (sess === "new") {
+						var nb = document.querySelector("[class*='_newSession']");
+						if (nb) return { btn: nb };
+					} else {
+						return { none: true };
+					}
+					if (!toggled) {
+						var side = document.querySelector("[class$='_sidebarCol']");
+						var tg = side
+							? side.querySelector("[class*='_toggle']")
+							: document.querySelector("[class*='_toggle']");
+						if (tg) {
+							fireClick(tg);
+							toggled = true;
 						}
 					}
-				}, 400);
-			});
+					return null;
+				}, 25000).then(function (done) {
+					if (!done) { setParentTitle(fallback); return; }
+					setTimeout(function () {
+						if (done.row) fireClick(done.row);
+						else if (done.btn) fireClick(done.btn);
+						if (done.btn) {
+							var tries = 0;
+							(function retry() {
+								var h = document.querySelector("[class$='_header']:has([class$='_titleRow'])");
+								if (h) return;
+								if (++tries <= 3 && !document.querySelector("[class$='_crumbCurrent']")) {
+									setTimeout(function () {
+										fireClick(done.btn);
+										retry();
+									}, 5000);
+								}
+							})();
+						}
+						var pt = 0;
+						(function pollTitle() {
+							var crumb = document.querySelector("[class$='_crumbCurrent']");
+							var t = crumb ? crumb.textContent.trim() : null;
+							if (t) {
+								setParentTitle(t);
+								reportSession();
+								return;
+							}
+							if (++pt < 60) setTimeout(pollTitle, 500);
+							else {
+								setParentTitle(fallback);
+								reportSession();
+							}
+						})();
+					}, 400);
+				});
+			}
 		}
 
 		/* Settings window: drive the app's own settings UI (the same page the
 		   sidebar's 设置 button opens — a modal settings panel) by clicking the
 		   sidebar.settings trigger inside the window iframe. The sidebar is
 		   display:none but its DOM and React handlers stay live. */
-		function selfDriveSettings(fallback) {
+		function selfDriveSettings(fallback, ctx) {
 			var seq = null;
 			try {
 				var w = window.frameElement ? window.frameElement.closest(".xp-window") : null;
@@ -1693,6 +1758,12 @@ window.__ModuleLoader__.load({
 				}, true);
 			}
 			var expanded = false;
+			function getSessions() {
+				try {
+					var c = S.ctx;
+					return c && typeof c.get === "function" ? c.get("sessions") : null;
+				} catch (e) { return null; }
+			}
 			function findTrigger() {
 				var areas = document.querySelectorAll("[class$='_settingsArea'], [class*='_settingsArea']");
 				for (var i = 0; i < areas.length; i++) {
@@ -1715,8 +1786,19 @@ window.__ModuleLoader__.load({
 				return null;
 			}, 25000).then(function () {
 				setParentTitle(fallback || "设置");
+				/* Wait for the app baseline (sessions store) so the boot restore
+				   settles and the sidebar.settings slot is fully mounted before we
+				   click its trigger — clicking too early loses the panel. */
+				var settle = function () {
+					var s = getSessions();
+					var snap = null;
+					try { snap = s && s.list ? s.list.getSnapshot() : null; } catch (e) { }
+					if (!snap || snap.phase !== "ready") { setTimeout(settle, 400); return; }
+					setTimeout(attempt, 900);
+				};
+				settle();
 				var tries = 0;
-				(function attempt() {
+				function attempt() {
 					var btn = findTrigger();
 					if (!btn) return;
 					fireClick(btn);
@@ -1726,9 +1808,9 @@ window.__ModuleLoader__.load({
 						return document.querySelector("[class$='_overlay']");
 					}, 2500).then(function (open) {
 						if (open) return;
-						if (++tries <= 4) setTimeout(attempt, 1500);
+						if (++tries <= 5) setTimeout(attempt, 1500);
 					});
-				})();
+				}
 			});
 		}
 
@@ -1814,9 +1896,12 @@ window.__ModuleLoader__.load({
 		// ─────────────────────────────────────────────────────────────────
 		// Watchdog: self-heal windows whose app content went blank.
 		// ─────────────────────────────────────────────────────────────────
-		function reviveWindow(win) {
+		function reviveWindow(win, why) {
 			try {
-				setWinTitle(win, "重新加载\u2026");
+				setWinTitle(win, "重新加载(" + (why || "?").slice(0, 60) + ")\u2026");
+				/* Boot failures are usually the persisted null-address selection
+				   crashing the runtime — clean it first so the reload can land. */
+				normalizePersistedSelection();
 				/* Reloading re-runs the iframe's own plugin instance, which
 				   self-drives to the target session (dataset.session persists). */
 				win.iframe.src = "/";
@@ -1831,14 +1916,45 @@ window.__ModuleLoader__.load({
 					try {
 						var d = w.iframe.contentDocument;
 						var blank = false;
-						if (!d || !d.body) blank = true;
+						var why = null;
+						if (!d || !d.body) { blank = true; why = "无文档"; }
 						else {
-							var len = (d.body.innerText || "").trim().length;
+							var text = (d.body.innerText || "").trim();
+							var len = text.length;
 							var hasFrame = !!d.querySelector("[class$='_frame']");
-							/* Blank = no layout and (almost) no text. A booting app
-							   still paints its shell, so two consecutive hits are
-							   required before we reload. */
-							if (len < 40 && !hasFrame) blank = true;
+							/* Boot failure screen: reload to heal. The failure page
+							   is the whole body ("HARNESS\nFailed to load plugins…"),
+							   so match on that shape ONLY — a conversation can
+							   legitimately contain the phrase "Failed to load
+							   plugins" in its messages, and matching the raw text
+							   would reload healthy windows (this very bug). */
+							if (text.indexOf("HARNESS") === 0 && text.indexOf("Failed to load plugins") !== -1) {
+								blank = true;
+								why = "启动失败页";
+								try {
+									var failed = [];
+									var items = d.querySelectorAll("[class*='_failed']");
+									for (var fi = 0; fi < items.length; fi++) {
+										var ft = (items[fi].textContent || "").trim();
+										if (ft && ft !== "Failed to load plugins") failed.push(ft);
+									}
+									if (failed.length) why = "启动失败:" + failed.join("|").slice(0, 80);
+								} catch (e) { }
+							}
+							/* Bare shell with no frame yet = still booting. A
+							   healthy boot paints progress quickly, so only call
+							   it blank when the text is stuck with NO progress
+							   for a long window — never reload a slow-but-growing
+							   boot (that caused endless reload loops). */
+							else if (len < 40 && !hasFrame) {
+								if (w.lastText === len) {
+									w.noProgress = (w.noProgress || 0) + 1;
+									if (w.noProgress >= 8) { blank = true; why = "长时间无进展(" + len + "字符)"; }
+								} else {
+									w.lastText = len;
+									w.noProgress = 0;
+								}
+							}
 							/* Folded = the frame is wide but the center column
 							   collapsed to ~0 (grid auto-placement put it in the
 							   0px track) — visually the content stacks on the
@@ -1847,13 +1963,22 @@ window.__ModuleLoader__.load({
 								var fr = d.querySelector("[class$='_frame']").getBoundingClientRect();
 								var ctr = d.querySelector("[class$='_centerCol']");
 								var ctrW = ctr ? ctr.getBoundingClientRect().width : 0;
-								if (fr.width > 200 && ctrW < 80) blank = true;
+								if (fr.width > 200 && ctrW < 80) { blank = true; why = "内容折叠(中心宽" + Math.round(ctrW) + "px)"; }
 							}
 						}
+						if (!blank) w.noProgress = 0;
 						w.blankHits = blank ? (w.blankHits || 0) + 1 : 0;
-						if (w.blankHits >= 2) {
+						/* Two consecutive blank ticks trigger a heal; cap revives
+						   so a persistently broken frame stops the loop. */
+						if (w.blankHits >= 2 && (w.revives || 0) < 6) {
 							w.blankHits = 0;
-							reviveWindow(w);
+							w.revives = (w.revives || 0) + 1;
+							/* Diagnostic: say WHY in the title + record it. */
+							(S.diag = S.diag || []).push({ at: new Date().toISOString(), why: why || "?", session: w.sessionId || w.iframe.dataset.session || "" });
+							if (S.diag.length > 50) S.diag.shift();
+							reviveWindow(w, why);
+						} else if (w.blankHits >= 2) {
+							w.blankHits = 0;
 						}
 					} catch (e) { /* ignore */ }
 				}
@@ -1953,8 +2078,32 @@ window.__ModuleLoader__.load({
 		// ─────────────────────────────────────────────────────────────────
 		// Plugin entry
 		// ─────────────────────────────────────────────────────────────────
+		/* Normalize the persisted session selection: the DSH runtime crashes at
+		   boot when `dsh.sessions.current` carries `subagentAddress: null`
+		   (the constructor guards with `!== void 0`, which lets null through,
+		   then dereferences null.childSessionId). Stripping the null field
+		   heals the next boot even without the runtime patch. */
+		function normalizePersistedSelection() {
+			try {
+				var key = "dsh.sessions.current";
+				var raw = localStorage.getItem(key);
+				if (!raw) return;
+				var state = JSON.parse(raw);
+				if (state && Object.prototype.hasOwnProperty.call(state, "subagentAddress") && state.subagentAddress == null) {
+					delete state.subagentAddress;
+					localStorage.setItem(key, JSON.stringify(state));
+				}
+			} catch (e) { /* ignore */ }
+		}
+
 		function apply(ctx) {
 			if (typeof document === "undefined") return;
+			/* Heal the null-address selection before anything boots (top and
+			   every window iframe share this localStorage). */
+			normalizePersistedSelection();
+			/* Stash the context for every document (top + window iframes) so
+			   tool windows can reach the sessions/workspaces services. */
+			try { S.ctx = ctx; } catch (e) { }
 			// Inject the stylesheet once; refresh content on HMR re-apply.
 			var tagId = "dsh-client-ui-theme-xp/xp-theme.css";
 			var tag = document.querySelector("style[data-plugin-css=\"" + tagId + "\"]");
@@ -1976,7 +2125,7 @@ window.__ModuleLoader__.load({
 				   there is no collapse animation), then self-drive to the target
 				   session announced via frameElement.dataset.session. */
 				document.documentElement.setAttribute("data-xp-win", "1");
-				selfDriveWindow();
+				selfDriveWindow(ctx);
 			}
 
 			// The Luna look is light-only: strip the dark-theme attribute if the
