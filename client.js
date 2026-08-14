@@ -1500,7 +1500,14 @@ window.__ModuleLoader__.load({
 		   handler stay live, so clicking it pops the native settings modal
 		   over the desktop. No separate window, no iframe boot. */
 		function openDesktopSettings() {
+			/* Instant feedback so the click is visibly registered. */
+			var ico = document.querySelector('.xp-desk-icon[data-icon="settings"]');
+			if (ico) {
+				ico.style.outline = "2px solid rgba(255,255,255,0.7)";
+				setTimeout(function () { try { ico.style.outline = ""; } catch (e) { } }, 700);
+			}
 			var attempts = 0;
+			var started = Date.now();
 			function findTrigger() {
 				var areas = document.querySelectorAll("[class$='_settingsArea'], [class*='_settingsArea']");
 				for (var i = 0; i < areas.length; i++) {
@@ -1512,7 +1519,8 @@ window.__ModuleLoader__.load({
 			function click() {
 				var btn = findTrigger();
 				if (!btn) {
-					if (++attempts <= 10) setTimeout(click, 1500);
+					if (++attempts <= 10 && Date.now() - started < 18000) setTimeout(click, 1500);
+					else fallback();
 					return;
 				}
 				fireClick(btn);
@@ -1522,17 +1530,40 @@ window.__ModuleLoader__.load({
 					return document.querySelector("[class$='_overlay']");
 				}, 2500).then(function (open) {
 					if (open) return;
-					if (++attempts <= 10) setTimeout(click, 1500);
+					if (++attempts <= 10 && Date.now() - started < 18000) setTimeout(click, 1500);
+					else fallback();
 				});
 			}
-			/* Let the app baseline settle so the sidebar.settings slot mounts. */
+			/* If the parent-page trigger cannot open the panel, fall back to a
+			   settings window (iframe) so the affordance always does something. */
+			function fallback() {
+				try {
+					if (document.querySelector("[class$='_overlay']")) return;
+					var ctx = S.ctx;
+					var s = ctx && typeof ctx.get === "function" ? ctx.get("sessions") : null;
+					var snap = null;
+					try { snap = s && s.list ? s.list.getSnapshot() : null; } catch (e) { }
+					/* Only fall back if the app baseline really is missing. */
+					if (snap && snap.phase === "ready") {
+						console.warn("[xp] settings trigger click did not open the panel");
+						openToolWindow("settings", "设置");
+					}
+				} catch (e) { /* ignore */ }
+			}
+			/* Let the app baseline settle so the sidebar.settings slot mounts;
+			   give up on the settle after 20s and try anyway. */
+			var settled = false;
 			var settle = function () {
 				var ctx = S.ctx;
 				var s = ctx && typeof ctx.get === "function" ? ctx.get("sessions") : null;
 				var snap = null;
 				try { snap = s && s.list ? s.list.getSnapshot() : null; } catch (e) { }
-				if (!snap || snap.phase !== "ready") { setTimeout(settle, 400); return; }
-				setTimeout(click, 800);
+				if ((snap && snap.phase === "ready") || settled) {
+					if (!settled) { settled = true; setTimeout(click, 800); }
+					return;
+				}
+				if (Date.now() - started > 20000) { settled = true; setTimeout(click, 100); return; }
+				setTimeout(settle, 400);
 			};
 			settle();
 		}
