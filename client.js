@@ -747,12 +747,14 @@ window.__ModuleLoader__.load({
 				S.active = null;
 				focusTopWindow();
 			}
+			schedulePersist();
 		}
 
 		function restoreWindow(win) {
 			win.state = win.state === "maximized" ? "maximized" : "normal";
 			win.el.classList.remove("minimized");
 			focusWindow(win);
+			schedulePersist();
 		}
 
 		function maximizeWindow(win) {
@@ -775,6 +777,7 @@ window.__ModuleLoader__.load({
 				win.el.querySelector(".xp-max").textContent = "\u25A0";
 			}
 			focusWindow(win);
+			schedulePersist();
 		}
 
 		function closeWindow(win) {
@@ -787,6 +790,7 @@ window.__ModuleLoader__.load({
 				S.active = null;
 				focusTopWindow();
 			}
+			schedulePersist();
 		}
 
 		function taskbarClick(win) {
@@ -816,6 +820,7 @@ window.__ModuleLoader__.load({
 			var up = function () {
 				document.removeEventListener("pointermove", move);
 				document.removeEventListener("pointerup", up);
+				schedulePersist();
 			};
 			document.addEventListener("pointermove", move);
 			document.addEventListener("pointerup", up);
@@ -869,6 +874,7 @@ window.__ModuleLoader__.load({
 			var up = function () {
 				document.removeEventListener("pointermove", move);
 				document.removeEventListener("pointerup", up);
+				schedulePersist();
 			};
 			document.addEventListener("pointermove", move);
 			document.addEventListener("pointerup", up);
@@ -970,6 +976,8 @@ window.__ModuleLoader__.load({
 			iframe.dataset.session = sessionId || "new";
 			iframe.dataset.wintitle = title || "";
 			iframe.src = "/";
+			schedulePersist();
+			return win;
 		}
 
 		// ─────────────────────────────────────────────────────────────────
@@ -1068,18 +1076,38 @@ window.__ModuleLoader__.load({
 						})();
 					}
 					/* Push the real title to the parent window once the
-					   conversation mounts (the crumb can lag). */
+					   conversation mounts (the crumb can lag), and report the
+					   actual session id (from the app's selected tree row) so
+					   the parent can persist the window. */
 					var pt = 0;
 					(function pollTitle() {
 						var crumb = document.querySelector("[class$='_crumbCurrent']");
 						var t = crumb ? crumb.textContent.trim() : null;
 						if (t) {
 							setParentTitle(t);
+							reportSession();
 							return;
 						}
 						if (++pt < 60) setTimeout(pollTitle, 500);
-						else setParentTitle(fallback);
+						else {
+							setParentTitle(fallback);
+							reportSession();
+						}
 					})();
+					function reportSession() {
+						if (!seq) return;
+						var sel = document.querySelector("[class*='_sessionRow'][class*='_selected']");
+						var sid = sel ? fiberSessionId(sel) : null;
+						if (!sid) {
+							/* Fall back to the announced target. */
+							sid = sess && sess !== "new" ? sess : null;
+						}
+						if (sid) {
+							try {
+								if (parent.__dshXpSetWinSession) parent.__dshXpSetWinSession(seq, sid);
+							} catch (e) { /* ignore */ }
+						}
+					}
 				}, 400);
 			});
 		}
@@ -1094,6 +1122,73 @@ window.__ModuleLoader__.load({
 				var text = (t || "会话").trim() || "会话";
 				if (parent.__dshXpSetWinTitle) parent.__dshXpSetWinTitle(seq, text);
 			} catch (e) { /* ignore */ }
+		}
+
+		// ─────────────────────────────────────────────────────────────────
+		// Workspace persistence: windows + geometry + state in localStorage,
+		// restored on refresh so the previous work scene comes back.
+		// ─────────────────────────────────────────────────────────────────
+		var STORAGE_KEY = "dsh-xp-windows-v1";
+
+		function schedulePersist() {
+			if (S.persistTimer) clearTimeout(S.persistTimer);
+			S.persistTimer = setTimeout(persistWindows, 250);
+		}
+
+		function persistWindows() {
+			try {
+				var list = [];
+				for (var i = 0; i < S.windows.length; i++) {
+					var w = S.windows[i];
+					/* Only persist windows with a real session id (still-booting
+					   ones are transient). */
+					if (!w || typeof w.sessionId !== "string") continue;
+					list.push({
+						sessionId: w.sessionId,
+						title: w.titleEl ? w.titleEl.textContent : "",
+						x: Math.round(w.x), y: Math.round(w.y),
+						w: Math.round(w.w), h: Math.round(w.h),
+						state: w.state,
+						z: parseInt(w.el.style.zIndex, 10) || 100
+					});
+				}
+				localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, windows: list }));
+			} catch (e) { /* storage unavailable — persistence is best-effort */ }
+		}
+
+		function restoreWindows() {
+			var raw = null;
+			try { raw = localStorage.getItem(STORAGE_KEY); } catch (e) { }
+			if (!raw) return 0;
+			var data = null;
+			try { data = JSON.parse(raw); } catch (e) { }
+			if (!data || !Array.isArray(data.windows)) return 0;
+			var created = 0;
+			for (var i = 0; i < data.windows.length; i++) {
+				var saved = data.windows[i];
+				if (!saved || typeof saved.sessionId !== "string") continue;
+				if (S.bySession.has(saved.sessionId)) continue;
+				var win = openWindow(saved.sessionId, saved.title || "会话");
+				if (!win) continue;
+				if (typeof saved.x === "number") {
+					win.x = saved.x; win.y = saved.y; win.w = saved.w; win.h = saved.h;
+					win.el.style.left = saved.x + "px";
+					win.el.style.top = saved.y + "px";
+					win.el.style.width = saved.w + "px";
+					win.el.style.height = saved.h + "px";
+				}
+				if (saved.state === "maximized") {
+					maximizeWindow(win);
+				} else if (saved.state === "minimized") {
+					minimizeWindow(win);
+				}
+				if (typeof saved.z === "number") {
+					win.el.style.zIndex = String(saved.z);
+					if (saved.z > S.z) S.z = saved.z;
+				}
+				created++;
+			}
+			return created;
 		}
 
 		// ─────────────────────────────────────────────────────────────────
@@ -1186,6 +1281,9 @@ window.__ModuleLoader__.load({
 			S.init = true;
 			startWatchdog();
 
+			/* Best-effort save on unload so a refresh keeps the scene. */
+			window.addEventListener("beforeunload", persistWindows);
+
 			/* Helpers the window iframes call back into (same-origin). */
 			window.__dshXpSetWinTitle = function (seq, title) {
 				var el = document.getElementById("dsh-xp-win-" + seq);
@@ -1196,6 +1294,20 @@ window.__ModuleLoader__.load({
 				var btn = document.querySelector('.xp-task-win[data-win="' + seq + '"]');
 				if (btn) { btn.textContent = text; btn.title = text; }
 			};
+			window.__dshXpSetWinSession = function (seq, sessionId) {
+				var el = document.getElementById("dsh-xp-win-" + seq);
+				if (!el) return;
+				for (var i = 0; i < S.windows.length; i++) {
+					var w = S.windows[i];
+					if (w.el !== el) continue;
+					if (w.sessionId === sessionId) return;
+					if (w.sessionId && S.bySession.get(w.sessionId) === w) S.bySession.delete(w.sessionId);
+					w.sessionId = sessionId;
+					if (sessionId && !S.bySession.has(sessionId)) S.bySession.set(sessionId, w);
+					schedulePersist();
+					return;
+				}
+			};
 			window.__dshXpFocusWindow = function (seq) {
 				var el = document.getElementById("dsh-xp-win-" + seq);
 				if (!el) return;
@@ -1203,6 +1315,15 @@ window.__ModuleLoader__.load({
 					if (S.windows[i].el === el) { focusWindow(S.windows[i]); return; }
 				}
 			};
+
+			/* Rebuild the previous work scene once per page load. */
+			if (!S.restored) {
+				S.restored = true;
+				setTimeout(function () {
+					var n = restoreWindows();
+					if (n > 0) persistWindows();
+				}, 400);
+			}
 		}
 
 		// ─────────────────────────────────────────────────────────────────
