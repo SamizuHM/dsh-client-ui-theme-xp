@@ -8,7 +8,7 @@
 [![Windows XP](https://img.shields.io/badge/theme-Windows%20XP%20Luna-316ac5?style=flat-square&logo=windows&logoColor=white)](https://github.com/SamizuHM/dsh-client-ui-theme-xp)
 [![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin#themes--appearance)
 
-![Screenshot](docs/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/SamizuHM/dsh-client-ui-theme-xp/main/docs/screenshot.png)
 
 ## ✨ 功能
 
@@ -22,18 +22,17 @@
 
 ## 📦 安装
 
-用你启动 web 的方式调用插件命令即可（无需全局安装 `dsh`）：
+已发布到 [npm](https://www.npmjs.com/package/dsh-client-ui-theme-xp)。用你启动 web 的方式调用插件命令即可（无需全局安装 `dsh`）：
 
 ```sh
-# 和 `npx @deepseek-ai/dsh web` 同一个入口 —— 从 GitHub 安装
-npx @deepseek-ai/dsh plugin --profile web add github:SamizuHM/dsh-client-ui-theme-xp
+# 首选：从 npm 安装（预构建，免 allowBuilds 构建授权）
+npx @deepseek-ai/dsh plugin --profile web add dsh-client-ui-theme-xp
 ```
 
-发布到 npm 后（推荐，免 `allowBuilds` 构建授权），也可以直接按包名安装：
+也可以直接从 GitHub 安装（总是最新提交）：
 
 ```sh
-# 从 npm registry 安装
-npx @deepseek-ai/dsh plugin --profile web add dsh-client-ui-theme-xp
+npx @deepseek-ai/dsh plugin --profile web add github:SamizuHM/dsh-client-ui-theme-xp
 ```
 
 如果全局安装过 `dsh`，把上面的 `npx @deepseek-ai/dsh` 换成 `dsh` 即可。
